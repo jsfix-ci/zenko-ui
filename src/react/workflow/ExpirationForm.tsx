@@ -14,10 +14,9 @@ import Input from '../ui-elements/Input';
 
 import type { S3BucketList } from '../../types/s3';
 
-import styled from 'styled-components';
 import { IconHelp } from '../ui-elements/Help';
 import { isVersioning } from '../utils';
-import { ChangeEvent } from 'react';
+import { WorkflowFormContainer } from '../ui-elements/WorkflowFormContainer';
 
 const flexStyle = {
   display: 'flex',
@@ -25,16 +24,6 @@ const flexStyle = {
   flexDirection: 'row',
   alignItems: 'center',
 };
-
-const ExpirationContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  ${T.Row} {
-    height: 25px;
-    max-height: 25px;
-  }
-`;
 
 type Props = {
   bucketList: S3BucketList;
@@ -114,7 +103,7 @@ export function ExpirationForm({ bucketList, locations, prefix = '' }: Props) {
   const isEditing = !!getValues(`${prefix}workflowId`);
 
   return (
-    <ExpirationContainer>
+    <WorkflowFormContainer>
       <input
         type="hidden"
         id="name"
@@ -732,7 +721,7 @@ export function ExpirationForm({ bucketList, locations, prefix = '' }: Props) {
           </T.Group>
         </T.Groups>
       </T.ScrollArea>
-    </ExpirationContainer>
+    </WorkflowFormContainer>
   );
 }
 

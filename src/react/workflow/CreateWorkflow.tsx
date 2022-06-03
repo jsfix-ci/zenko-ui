@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { joiResolver } from '@hookform/resolvers/joi';
-import { Button } from '@scality/core-ui/dist/next';
+import { Box, Button } from '@scality/core-ui/dist/next';
 import { spacing } from '@scality/core-ui/dist/style/theme';
 import { AppState } from '../../types/state';
 import { useHistory } from 'react-router';
@@ -35,14 +35,18 @@ import {
 import { workflowListQuery } from '../queries';
 import Joi from '@hapi/joi';
 import { ExpirationForm, expirationSchema } from './ExpirationForm';
-import {
-  Select,
-  Option,
-} from '@scality/core-ui/dist/components/selectv2/Selectv2.component';
+import { Select } from '@scality/core-ui/dist/components/selectv2/Selectv2.component';
 import { Breadcrumb } from '../ui-elements/Breadcrumb';
 import { useLocation } from 'react-router-dom';
 import { useQueryParams, useRolePathName } from '../utils/hooks';
 import { useCurrentAccount } from '../DataServiceRoleProvider';
+import { TransitionForm, transitionSchema } from './TransitionForm';
+
+const OptionIcon = ({ iconClass }: { iconClass: string }) => (
+  <Box width="2rem" display="flex" alignItems="center" justifyContent="center">
+    <span className={iconClass} />
+  </Box>
+);
 
 const CreateWorkflow = () => {
   const dispatch = useDispatch();
@@ -72,6 +76,11 @@ const CreateWorkflow = () => {
             then: Joi.object(replicationSchema),
             otherwise: Joi.valid(),
           }),
+          transition: Joi.when('type', {
+            is: Joi.equal('transition'),
+            then: Joi.object(transitionSchema),
+            otherwise: Joi.valid(),
+          }),
           expiration: Joi.when('type', {
             is: Joi.equal('expiration'),
             then: expirationSchema,
@@ -79,7 +88,7 @@ const CreateWorkflow = () => {
           }),
         }),
       );
-      if (values.type === 'replication') {
+      if (values.type === 'replication' || values.type === 'transition') {
         return joiValidator(values, context, options);
       } else {
         return joiValidator(
@@ -236,15 +245,23 @@ const CreateWorkflow = () => {
                           >
                             <Select.Option
                               value={'replication'}
-                              icon={<i className="fas fa-coins" />}
+                              icon={<OptionIcon iconClass="fas fa-coins" />}
                             >
                               Replication
                             </Select.Option>
                             <Select.Option
                               value={'expiration'}
-                              icon={<i className="fas fa-stopwatch" />}
+                              icon={<OptionIcon iconClass="fas fa-stopwatch" />}
                             >
                               Expiration
+                            </Select.Option>
+                            <Select.Option
+                              value={'transition'}
+                              icon={
+                                <OptionIcon iconClass="fas fa-space-shuttle" />
+                              }
+                            >
+                              Transition
                             </Select.Option>
                           </Select>
                         );
@@ -267,6 +284,13 @@ const CreateWorkflow = () => {
                 bucketList={bucketList}
                 locations={locations}
                 prefix={'expiration.'}
+              />
+            )}
+            {type === 'transition' && (
+              <TransitionForm
+                bucketList={bucketList}
+                locations={locations}
+                prefix={'transition.'}
               />
             )}
             <T.Footer>

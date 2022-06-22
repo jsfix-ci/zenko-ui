@@ -80,7 +80,8 @@ function AccountRoleSelectButtonAndModal() {
         Header: 'Role Name',
         accessor: 'roleName',
         cellStyle: {
-          minWidth: '22rem',
+          minWidth: '12rem',
+          marginRight: '10rem',
         },
         Cell({ value: roleName }: { value: string }) {
           if (SCALITY_INTERNAL_ROLES.includes(roleName)) {
@@ -93,7 +94,7 @@ function AccountRoleSelectButtonAndModal() {
                   }}
                 >
                   {roleName}{' '}
-                  <Icon className="fas fa-question-circle fa-xs"></Icon>
+                  <Icon className="fas fa-question-circle fa-xs" style={{fontSize: '1rem'}}></Icon>
                 </Tooltip>
               </>
             );
@@ -145,7 +146,7 @@ function AccountRoleSelectButtonAndModal() {
         label={
           <>
             {accountName}
-            <SpacedBox ml={2}>
+            <SpacedBox ml={12}>
               <i className="fas fa-chevron-down fa-xs" />
             </SpacedBox>
           </>

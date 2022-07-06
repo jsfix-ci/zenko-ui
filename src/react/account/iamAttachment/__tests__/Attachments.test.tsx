@@ -29,6 +29,7 @@ const server = setupServer(
   rest.post(`${TEST_API_BASE_URL}/`, (req, res, ctx) => {
     const params = new URLSearchParams(req.body);
     if (params.get('Action') === 'ListUsers') {
+      console.log('listusers');
       return res(
         ctx.xml(`
       <ListUsersResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
@@ -50,6 +51,31 @@ const server = setupServer(
        </ListUsersResponse>`),
       );
     }
+    if (params.get('Action') === 'ListGroups') {
+      console.log('listgroups');
+      return res(
+        ctx.xml(`
+      <ListGroupsResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">
+  <ListGroupsResult>
+    <Groups>
+      <member>
+        <Path>/</Path>
+        <GroupName>${groupName}</GroupName>
+        <GroupId>N0L8CM7DIHD6YWN8V8796U3PTM8EEB01</GroupId>
+        <Arn>${groupArn}</Arn>
+        <CreateDate>2022-06-23T12:29:50Z</CreateDate>
+      </member>
+    </Groups>
+    <IsTruncated>false</IsTruncated>
+  </ListGroupsResult>
+  <ResponseMetadata>
+    <RequestId>99ed69425849972f4e3d</RequestId>
+  </ResponseMetadata>
+</ListGroupsResponse>;
+      `),
+      );
+    }
+
     if (params.get('Action') === 'AttachUserPolicy') {
       return res(
         ctx.xml(`
@@ -60,6 +86,9 @@ const server = setupServer(
       </AttachUserPolicyResponse>;
       `),
       );
+    }
+    if (params.get('Action') === 'AttachGroupPolicy') {
+      return res(ctx.status(500));
     }
     if (params.get('Action') === 'ListGroupsForUser') {
       return res(
@@ -139,7 +168,6 @@ describe('Policy Attachments', () => {
       wrapper,
     });
   });
-
   it('should render Users, Groups and Roles for Policy Attachments Tabs', () => {
     //V
     expect(screen.getByText(`${policyName}`));
@@ -207,6 +235,8 @@ describe('Policy Attachments', () => {
     );
     //E
     userEvent.click(screen.getByPlaceholderText('Search by entity name'));
+
+    await waitFor(() => screen.getByRole('option', { name: /dev1/i }));
     userEvent.click(screen.getByRole('option', { name: /dev1/i }));
     //V
     expect(
@@ -242,6 +272,7 @@ describe('Policy Attachments', () => {
     );
     //E
     userEvent.click(screen.getByPlaceholderText('Search by entity name'));
+    await waitFor(() => screen.getByRole('option', { name: /dev1/i }));
     userEvent.click(screen.getByRole('option', { name: /dev1/i }));
     userEvent.click(screen.getByRole('button', { name: /save/i }));
 
@@ -263,14 +294,7 @@ describe('Policy Attachments', () => {
   });
 
   it('should render Retry button if attachment failed', async () => {
-    server.use(
-      rest.post(`${TEST_API_BASE_URL}/`, (req, res, ctx) => {
-        const params = new URLSearchParams(req.body);
-        if (params.get('Action') === 'AttachUserPolicy') {
-          return res(ctx.status(500));
-        }
-      }),
-    );
+    userEvent.click(screen.getByRole('tab', { name: /groups/i }));
     await waitFor(() =>
       expect(
         screen.getByPlaceholderText('Search by entity name'),
@@ -278,7 +302,8 @@ describe('Policy Attachments', () => {
     );
     //E
     userEvent.click(screen.getByPlaceholderText('Search by entity name'));
-    userEvent.click(screen.getByRole('option', { name: /dev1/i }));
+    await waitFor(() => screen.getByRole('option', { name: /devs/i }));
+    userEvent.click(screen.getByRole('option', { name: /devs/i }));
     userEvent.click(screen.getByRole('button', { name: /save/i }));
     userEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
@@ -304,15 +329,6 @@ describe('User Attachments', () => {
     expect(screen.getByText(`${userName}`));
     expect(screen.getByRole('tab', { name: /groups/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /policies/i })).toBeInTheDocument();
-  });
-
-  it('should render the attached groups when we have in the Groups Tab', async () => {
-    //E
-    await waitFor(() => screen.getByText('Attachment status'));
-    //V
-    expect(
-      screen.getByRole('row', { name: /devs attached remove/i }),
-    ).toBeInTheDocument();
   });
 
   it('should remove the user from group after confirmation', async () => {
